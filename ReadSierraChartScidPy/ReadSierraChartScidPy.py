@@ -12,11 +12,12 @@ from datetime import datetime, timedelta
 import glob
 from zoneinfo import ZoneInfo
 import zipfile
+import multiprocessing as mp
 
 from ScidStructs import read_hdr, read_ir
 
-datafile_dir = "C:/SierraChart/Data/";
-datafile_outdir = "C:/Users/lel48/SierraChartData/";
+datafile_dir = "C:\\SierraChart\\Data\\";
+datafile_outdir = "C:\\Users\\lel48\\SierraChartData\\";
 futures_root = "ES";
 futures_root_len = len(futures_root)
 futures_codes= { 'H': 3, 'M': 6, 'U': 9, 'Z': 12 }
@@ -29,8 +30,8 @@ def read_sierra_chart_scid():
     start_time = datetime.now()
 
     files = glob.glob(datafile_dir + futures_root + "*.scid")
-    for filename in files:
-        process_scid_file(filename);
+    pool = mp.Pool(mp.cpu_count())
+    pool.map(process_scid_file, files)
 
     end_time = datetime.now()
     print(f"read_sierra_chart_scid time = {(end_time - start_time)}")
@@ -39,7 +40,7 @@ def read_sierra_chart_scid():
 def process_scid_file(path: str):
     filename = os.path.basename(path)
     print("processing filename=", filename)
-    futures_code = filename[futures_root_len]
+    futures_code = filename[futures_root_len].upper()
     if futures_code not in futures_codes:
         return;
 
@@ -87,7 +88,7 @@ def process_scid_file(path: str):
                     break
                 count = count + 1
 
-                # convert SCDateTime to Eastern datetime
+                # convert SCDateTime (UTC) to Python datetime in America/New_York time zone
                 dt = SCDateTimeEpoch + timedelta(microseconds=ir_tuple[0])
                 dt_et = dt.astimezone(eastern)
 
@@ -104,10 +105,10 @@ def process_scid_file(path: str):
                     continue
                 prev_ts = ts
 
-                # convert to string
-                #outstr = f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}"
+                # convert tick tuple to string
                 outfile.write(f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}\n")
     
+    # convert csv to zip, delete csv
     with zipfile.ZipFile(out_path_zip, 'w') as zip:
         zip.write(out_path_filename)
         os.remove(out_path_csv)
