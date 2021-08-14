@@ -17,11 +17,11 @@ import multiprocessing as mp
 
 from ScidStructs import read_hdr, read_ir
 
-datafile_dir = "C:\\SierraChart\\Data\\";
-datafile_outdir = "C:\\Users\\lel48\\SierraChartData\\";
-futures_root = "ES";
+datafile_dir = "C:\\SierraChart\\Data\\"
+datafile_outdir = "C:\\Users\\lel48\\SierraChartData\\"
+futures_root = "ES"
 futures_root_len = len(futures_root)
-futures_codes= { 'H': 3, 'M': 6, 'U': 9, 'Z': 12 }
+futures_codes = {'H': 3, 'M': 6, 'U': 9, 'Z': 12}
 utc = ZoneInfo('UTC')
 eastern = ZoneInfo('America/New_York')
 SCDateTimeEpoch = datetime(1899, 12, 30, tzinfo=utc)
@@ -43,9 +43,9 @@ def process_scid_file(path: str):
     print("processing filename=", filename)
     futures_code = filename[futures_root_len].upper()
     if futures_code not in futures_codes:
-        return;
+        return
 
-    futures_two_digit_year_str = filename[futures_root_len+1:futures_root_len+3]
+    futures_two_digit_year_str = filename[futures_root_len + 1:futures_root_len + 3]
     try:
         futures_year = 2000 + int(futures_two_digit_year_str)
     except ValueError:
@@ -58,7 +58,7 @@ def process_scid_file(path: str):
         start_month = 12
         start_year = end_year - 1
     elif futures_code == 'Z':
-        end_month = 3;
+        end_month = 3
         end_year = end_year + 1
 
     out_fn_base = futures_root + futures_code + futures_two_digit_year_str
@@ -74,13 +74,13 @@ def process_scid_file(path: str):
 
     with open(path, 'rb') as file:
         # make sure we can read header
-        hdr_tuple = read_hdr(file)
+        read_hdr(file)
 
         with open(out_path_filename, 'w') as outfile:
             # write header
             outfile.write('ISODateTime,Close\n')
 
-            count = 0;
+            count = 0
             prev_ts = start_dt.timestamp()
             while True:
                 # read an scid tick record into a tuple
@@ -100,7 +100,6 @@ def process_scid_file(path: str):
                     break
 
                 # only keep 1 tick for each second
-                tt = dt_et.timetuple()
                 ts = dt_et.timestamp()
                 if ts == prev_ts:
                     continue
@@ -108,16 +107,15 @@ def process_scid_file(path: str):
 
                 # convert tick tuple to string
                 outfile.write(f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}\n")
-    
+
     # convert csv to zip, delete csv
-    with zipfile.ZipFile(out_path_zip, 'w') as zip:
-        zip.write(out_path_filename)
+    with zipfile.ZipFile(out_path_zip, 'w') as myzip:
+        myzip.write(out_path_filename)
         os.remove(out_path_csv)
 
 
-if (__name__ == '__main__'):
-
-    #import sys
-    #if len(sys.argv) > 1:
+if __name__ == '__main__':
+    # import sys
+    # if len(sys.argv) > 1:
     #    print(fact(int(sys.argv[1])))
     read_sierra_chart_scid()
