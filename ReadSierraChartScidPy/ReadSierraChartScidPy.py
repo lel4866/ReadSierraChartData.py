@@ -1,5 +1,6 @@
 # this program reads data from a local C:/SierraChart/data directory
 # it only reads files which start with ESmyy and have a .scid extension
+# 'ES' must be in upper case and the extension 'scid' must be in lower case
 # these are native binary Sierra Chart data files
 # m is a futures contract month code: H, M, U, or Z
 # yy is a 2 digit year
