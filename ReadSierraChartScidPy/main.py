@@ -24,6 +24,8 @@ futures_root_len = len(futures_root)
 futures_codes = {'H': 3, 'M': 6, 'U': 9, 'Z': 12}
 utc = ZoneInfo('UTC')
 eastern = ZoneInfo('America/New_York')
+
+# start of Sierra Charts datetimes; times are in microseconds from this datetime
 SCDateTimeEpoch = datetime(1899, 12, 30, tzinfo=utc)
 
 
