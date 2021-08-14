@@ -11,6 +11,8 @@ import os
 from datetime import datetime, timedelta
 import glob
 from zoneinfo import ZoneInfo
+import zipfile
+
 from ScidStructs import read_hdr, read_ir
 
 datafile_dir = "C:/SierraChart/Data/";
@@ -57,26 +59,59 @@ def process_scid_file(path: str):
         end_month = 3;
         end_year = end_year + 1
 
-    out_path = datafile_outdir + futures_root + futures_code + futures_two_digit_year_str + ".zip"
+    out_fn_base = futures_root + futures_code + futures_two_digit_year_str
+    out_path = datafile_outdir + out_fn_base
+    out_path_csv = out_path + ".csv"
+    out_path_zip = out_fn_base + ".zip"
+    out_path_filename = out_fn_base + ".csv"
+    os.chdir(datafile_outdir)
 
-    # only keep ticks between start_date and end_date
-    #est = ZoneInfo.ZoneInfo('America/New_York')
+    # only keep ticks between start_date and end_date (the 3 months of "active" data)
     start_dt = datetime(start_year, start_month, 9, 18, 0, 0, tzinfo=eastern)
     end_dt = datetime(end_year, end_month, 9, 18, 0, 0, tzinfo=eastern)
 
-    file = open(path, 'rb')
-    hdr_tuple = read_hdr(file)
+    with open(path, 'rb') as file:
+        # make sure we can read header
+        hdr_tuple = read_hdr(file)
 
-    count = 0;
-    while True:
-        ir_tuple = read_ir(file)
-        if ir_tuple is None:
-            break
-        count = count + 1
+        with open(out_path_filename, 'w') as outfile:
+            # write header
+            outfile.write('ISODateTime,Close\n')
 
-        dt = SCDateTimeEpoch + timedelta(microseconds=ir_tuple[0])
-        # convert SCDateTime to Eastern datetime
-        dt_et = dt.astimezone(eastern)
+            count = 0;
+            prev_ts = start_dt.timestamp()
+            while True:
+                # read an scid tick record into a tuple
+                ir_tuple = read_ir(file)
+                if ir_tuple is None:
+                    break
+                count = count + 1
+
+                # convert SCDateTime to Eastern datetime
+                dt = SCDateTimeEpoch + timedelta(microseconds=ir_tuple[0])
+                dt_et = dt.astimezone(eastern)
+
+                # only keep ticks between specified start and end date/times...that is, for the 3 "active" months
+                if dt_et < start_dt:
+                    continue
+                if dt_et >= end_dt:
+                    break
+
+                # only keep 1 tick for each second
+                tt = dt_et.timetuple()
+                ts = dt_et.timestamp()
+                if ts == prev_ts:
+                    continue
+                prev_ts = ts
+
+                # convert to string
+                #outstr = f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}"
+                outfile.write(f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}\n")
+    
+    with zipfile.ZipFile(out_path_zip, 'w') as zip:
+        zip.write(out_path_filename)
+        os.remove(out_path_csv)
+
 
 if (__name__ == '__main__'):
 
