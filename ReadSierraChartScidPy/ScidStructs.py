@@ -37,10 +37,6 @@ ir_len = struct.calcsize(ir_format)
 
 
 def read_hdr(file):
-    file.seek(0, 2) # move to end of file
-    file_length_remaining = file.tell() # get current position
-    file.seek(0, 0) # go back to where we started
-
     header = file.read(ifh_len)
     hdr_tuple = unpack(ifh_format, header)
     return hdr_tuple
