@@ -35,6 +35,9 @@ def read_sierra_chart_scid():
     files = glob.glob(datafile_dir + futures_root + "*.scid")
     pool = mp.Pool(mp.cpu_count())
     pool.map(process_scid_file, files)
+    #for file in files:
+    #    process_scid_file(file)
+        #break
 
     end_time = datetime.now()
     print(f"read_sierra_chart_scid time = {(end_time - start_time)}")
