@@ -83,7 +83,7 @@ def process_scid_file(path: str):
             outfile.write('ISODateTime,Close\n')
 
             count = 0
-            prev_ts = start_dt.timestamp()
+            prev_ts = ""
             while True:
                 # read an scid tick record into a tuple
                 ir_tuple = read_ir(file)
@@ -102,13 +102,13 @@ def process_scid_file(path: str):
                     break
 
                 # only keep 1 tick for each second
-                ts = dt_et.timestamp()
+                ts = dt_et.isoformat(timespec='seconds')
                 if ts == prev_ts:
                     continue
                 prev_ts = ts
 
                 # convert tick tuple to string
-                outfile.write(f"{dt_et.isoformat(timespec='seconds')},{ir_tuple[1]:.2f}\n")
+                outfile.write(f"{ts},{ir_tuple[1]:.2f}\n")
 
     # convert csv to zip, delete csv
     with zipfile.ZipFile(out_path_zip, 'w') as myzip:
