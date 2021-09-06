@@ -17,8 +17,8 @@ import multiprocessing as mp
 
 from ScidStructs import read_hdr, read_ir
 
-datafile_dir = "C:\\SierraChart\\Data\\"
-datafile_outdir = "C:\\Users\\lel48\\SierraChartData\\"
+datafile_dir = "C:/SierraChart/Data/"
+datafile_outdir = "C:/Users/lel48/SierraChartDataPy/"
 futures_root = "ES"
 futures_root_len = len(futures_root)
 futures_codes = {'H': 3, 'M': 6, 'U': 9, 'Z': 12}
@@ -71,7 +71,7 @@ def process_scid_file(path: str):
     out_path_csv = out_path + ".csv"
     out_path_zip = out_fn_base + ".zip"
     out_path_filename = out_fn_base + ".csv"
-    os.chdir(datafile_outdir)
+    os.chdir(datafile_outdir)  # do this so zip archive does not use full path to file...just filename
 
     # only keep ticks between start_date and end_date (the 3 months of "active" data)
     start_dt = datetime(start_year, start_month, 9, 18, 0, 0, tzinfo=eastern)
